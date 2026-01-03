@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Bell, Wifi, WifiOff, X, Users, Smartphone } from 'lucide-react'
+import { Bell, Wifi, WifiOff, Users, Smartphone } from 'lucide-react'
 import { useState } from 'react'
 import { useApp } from '../App'
 import { useNavigate } from 'react-router-dom'

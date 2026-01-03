@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { ArrowLeft, MapPin, BarChart3, Bell, Wifi, WifiOff, Clock, Smartphone, User, Navigation } from 'lucide-react'
+import { ArrowLeft, MapPin, BarChart3, Bell, Wifi, WifiOff, Clock, Smartphone, Navigation } from 'lucide-react'
 import { useApp, Device, LocationData } from '../App'
 import { motion } from 'framer-motion'
 import { API_BASE_URL } from '../lib/supabase'

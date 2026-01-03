@@ -139,19 +139,21 @@ function App() {
 
       case 'NEW_USER_REGISTERED':
         // Add new device to list
-        setDevices(prev => {
-          const exists = prev.find(d => d.device_id === device_id)
-          if (exists) return prev
-          return [...prev, {
-            device_id,
-            username: data.username,
-            device_name: data.device_name,
-            first_seen: data.registered_at,
-            last_seen: data.registered_at,
-            is_online: 1,
-            location_enabled: 0
-          }]
-        })
+        if (device_id) {
+          setDevices(prev => {
+            const exists = prev.find(d => d.device_id === device_id)
+            if (exists) return prev
+            return [...prev, {
+              device_id,
+              username: data.username,
+              device_name: data.device_name,
+              first_seen: data.registered_at,
+              last_seen: data.registered_at,
+              is_online: 1,
+              location_enabled: 0
+            }]
+          })
+        }
 
         // Show notification
         addNotification({
@@ -171,11 +173,13 @@ function App() {
         break
 
       case 'LOCATION_UPDATE':
-        setLocations(prev => {
-          const newMap = new Map(prev)
-          newMap.set(device_id, data)
-          return newMap
-        })
+        if (device_id) {
+          setLocations(prev => {
+            const newMap = new Map(prev)
+            newMap.set(device_id, data)
+            return newMap
+          })
+        }
         break
     }
   }, [lastMessage])

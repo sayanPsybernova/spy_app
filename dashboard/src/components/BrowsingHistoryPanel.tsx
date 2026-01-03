@@ -109,17 +109,6 @@ export default function BrowsingHistoryPanel({ deviceId }: BrowsingHistoryPanelP
     })
   }
 
-  const getBrowserIcon = (pkg: string | null) => {
-    if (!pkg) return 'globe'
-    if (pkg.includes('chrome')) return 'chrome'
-    if (pkg.includes('firefox')) return 'firefox'
-    if (pkg.includes('edge') || pkg.includes('emmx')) return 'edge'
-    if (pkg.includes('samsung') || pkg.includes('sbrowser')) return 'samsung'
-    if (pkg.includes('opera')) return 'opera'
-    if (pkg.includes('brave')) return 'brave'
-    return 'globe'
-  }
-
   const truncateUrl = (url: string, maxLength: number = 60) => {
     if (url.length <= maxLength) return url
     return url.substring(0, maxLength) + '...'
