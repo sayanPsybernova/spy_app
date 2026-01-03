@@ -1,4 +1,5 @@
 import { WebSocketServer, WebSocket } from 'ws';
+import { Server } from 'http';
 import { supabase } from '../lib/supabase';
 import { inferIntent } from '../services/intent';
 
@@ -14,11 +15,27 @@ const dashboardConnections = new Set<ExtendedWebSocket>();
 
 let wss: WebSocketServer;
 
+// Initialize WebSocket server attached to HTTP server (for cloud deployment)
+export function initWebSocketServerWithHttp(server: Server) {
+  wss = new WebSocketServer({ server });
+
+  console.log('WebSocket server attached to HTTP server');
+
+  setupWebSocketHandlers();
+  return wss;
+}
+
+// Initialize WebSocket server on separate port (for local development)
 export function initWebSocketServer(port: number = 8080) {
   wss = new WebSocketServer({ port });
 
   console.log(`WebSocket server running on port ${port}`);
 
+  setupWebSocketHandlers();
+  return wss;
+}
+
+function setupWebSocketHandlers() {
   wss.on('connection', (ws: ExtendedWebSocket) => {
     ws.isAlive = true;
 
@@ -61,8 +78,6 @@ export function initWebSocketServer(port: number = 8080) {
   wss.on('close', () => {
     clearInterval(interval);
   });
-
-  return wss;
 }
 
 async function handleMessage(ws: ExtendedWebSocket, message: any) {

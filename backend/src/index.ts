@@ -1,6 +1,7 @@
 import express from 'express';
+import { createServer } from 'http';
 import cors from 'cors';
-import { initWebSocketServer, getConnectedDeviceCount, getConnectedDashboardCount } from './websocket/server';
+import { initWebSocketServerWithHttp, getConnectedDeviceCount, getConnectedDashboardCount } from './websocket/server';
 import devicesRouter from './routes/devices';
 import telemetryRouter from './routes/telemetry';
 import locationRouter from './routes/location';
@@ -10,7 +11,9 @@ import browserRouter from './routes/browser';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const WS_PORT = process.env.WS_PORT || 8080;
+
+// Create HTTP server
+const server = createServer(app);
 
 // Middleware
 app.use(cors());
@@ -29,6 +32,25 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
     connected_devices: getConnectedDeviceCount(),
     connected_dashboards: getConnectedDashboardCount()
+  });
+});
+
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({
+    name: 'Telemetry Backend',
+    version: '1.0.0',
+    status: 'running',
+    endpoints: {
+      health: '/health',
+      auth: '/api/auth',
+      admin: '/api/admin',
+      devices: '/api/devices',
+      telemetry: '/api/telemetry',
+      location: '/api/location',
+      browser: '/api/browser'
+    },
+    websocket: 'Connect via wss:// on same URL'
   });
 });
 
@@ -51,14 +73,17 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// Start HTTP server
-app.listen(PORT, () => {
+// Attach WebSocket to the same HTTP server
+initWebSocketServerWithHttp(server);
+
+// Start HTTP server (handles both REST API and WebSocket)
+server.listen(PORT, () => {
   console.log(`
 ╔══════════════════════════════════════════════════════════╗
 ║         TELEMETRY BACKEND SERVER STARTED                ║
 ╠══════════════════════════════════════════════════════════╣
-║  REST API:    http://localhost:${PORT}                      ║
-║  WebSocket:   ws://localhost:${WS_PORT}                        ║
+║  Server:      http://localhost:${PORT}                      ║
+║  WebSocket:   ws://localhost:${PORT} (same port)            ║
 ║  Health:      http://localhost:${PORT}/health               ║
 ╠══════════════════════════════════════════════════════════╣
 ║  Auth Endpoints:                                         ║
@@ -87,16 +112,15 @@ app.listen(PORT, () => {
   `);
 });
 
-// Start WebSocket server
-initWebSocketServer(Number(WS_PORT));
-
 // Graceful shutdown
 process.on('SIGINT', () => {
   console.log('\nShutting down gracefully...');
+  server.close();
   process.exit(0);
 });
 
 process.on('SIGTERM', () => {
   console.log('\nShutting down gracefully...');
+  server.close();
   process.exit(0);
 });
