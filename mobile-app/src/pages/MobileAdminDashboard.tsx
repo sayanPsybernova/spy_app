@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import {
   Smartphone, MapPin, Users, Bell, LogOut,
   Wifi, WifiOff, Volume2, Loader2, RefreshCw,
-  User, Plus, Trash2, Check, X, Clock
+  Trash2, Check, X, Clock
 } from 'lucide-react'
 import { useAppContext } from '../App'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 
 interface Device {
   id: string

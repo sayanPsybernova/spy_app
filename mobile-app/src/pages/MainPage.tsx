@@ -20,7 +20,7 @@ export default function MainPage() {
   const [wsConnected, setWsConnected] = useState(false)
   const [showPauseConfirm, setShowPauseConfirm] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
-  const [currentApp, setCurrentApp] = useState<{ packageName: string; appLabel: string } | null>(null)
+  const [, setCurrentApp] = useState<{ packageName: string; appLabel: string } | null>(null)
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>()
 

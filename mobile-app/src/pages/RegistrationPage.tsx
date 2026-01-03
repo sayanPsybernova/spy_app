@@ -67,7 +67,8 @@ export default function RegistrationPage() {
         setUserData({
           device_id,
           username: username.trim(),
-          device_name: finalDeviceName
+          device_name: finalDeviceName,
+          role: 'user'
         })
       } else {
         setError(result.error || 'Registration failed')
