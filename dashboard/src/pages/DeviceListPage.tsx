@@ -150,7 +150,7 @@ function DeviceCard({ device, location, index, onBeep }: DeviceCardProps) {
             {/* Avatar */}
             <div className="relative">
               <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-xl font-bold">
-                {device.username.charAt(0).toUpperCase()}
+                {(device.username || '?').charAt(0).toUpperCase()}
               </div>
               <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-dark-card ${device.is_online ? 'bg-emerald-500' : 'bg-gray-500'}`} />
             </div>
@@ -211,7 +211,7 @@ function DeviceListItem({ device, location, index, onBeep }: DeviceCardProps) {
           {/* Avatar */}
           <div className="relative flex-shrink-0">
             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-lg font-bold">
-              {device.username.charAt(0).toUpperCase()}
+              {(device.username || '?').charAt(0).toUpperCase()}
             </div>
             <div className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-dark-card ${device.is_online ? 'bg-emerald-500' : 'bg-gray-500'}`} />
           </div>

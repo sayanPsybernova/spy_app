@@ -110,7 +110,7 @@ export default function DeviceDetailPage() {
           {/* Avatar */}
           <div className="relative">
             <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-3xl font-bold">
-              {device.username.charAt(0).toUpperCase()}
+              {(device.username || '?').charAt(0).toUpperCase()}
             </div>
             <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-3 border-dark-card ${device.is_online ? 'bg-emerald-500' : 'bg-gray-500'}`} />
           </div>

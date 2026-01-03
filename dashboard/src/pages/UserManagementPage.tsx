@@ -213,7 +213,7 @@ export default function UserManagementPage() {
                   {user.profile_image_url ? (
                     <img src={user.profile_image_url} alt={user.username} className="w-full h-full object-cover" />
                   ) : (
-                    user.username.charAt(0).toUpperCase()
+                    (user.username || '?').charAt(0).toUpperCase()
                   )}
                 </div>
 
