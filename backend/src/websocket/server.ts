@@ -1,5 +1,5 @@
 import { WebSocketServer, WebSocket } from 'ws';
-import { deviceQueries, locationQueries, telemetryQueries } from '../database/schema';
+import { supabase } from '../lib/supabase';
 import { inferIntent } from '../services/intent';
 
 interface ExtendedWebSocket extends WebSocket {
@@ -65,7 +65,7 @@ export function initWebSocketServer(port: number = 8080) {
   return wss;
 }
 
-function handleMessage(ws: ExtendedWebSocket, message: any) {
+async function handleMessage(ws: ExtendedWebSocket, message: any) {
   const { type, device_id, client_type, payload } = message;
 
   switch (type) {
@@ -75,11 +75,15 @@ function handleMessage(ws: ExtendedWebSocket, message: any) {
         dashboardConnections.add(ws);
         console.log('Dashboard connected');
 
-        // Send current device list
-        const devices = deviceQueries.getAll.all();
+        // Send current device list from Supabase
+        const { data: devices } = await supabase
+          .from('devices')
+          .select('*, user:users(user_id, username, profile_image_url)')
+          .order('last_seen', { ascending: false });
+
         ws.send(JSON.stringify({
           type: 'DEVICE_LIST',
-          data: devices
+          data: devices || []
         }));
       } else if (client_type === 'DEVICE' && device_id) {
         ws.clientType = 'DEVICE';
@@ -87,8 +91,14 @@ function handleMessage(ws: ExtendedWebSocket, message: any) {
         deviceConnections.set(device_id, ws);
         console.log(`Device connected: ${device_id}`);
 
-        // Update device online status
-        deviceQueries.updateOnlineStatus.run(1, device_id);
+        // Update device online status in Supabase
+        await supabase
+          .from('devices')
+          .update({
+            is_online: true,
+            last_seen: new Date().toISOString()
+          })
+          .eq('device_id', device_id);
 
         // Broadcast device online to dashboards
         broadcastToDashboards({
@@ -101,21 +111,29 @@ function handleMessage(ws: ExtendedWebSocket, message: any) {
 
     case 'LOCATION_UPDATE':
       if (ws.deviceId && payload) {
-        // Store location
-        locationQueries.insert.run(
-          ws.deviceId,
-          payload.latitude,
-          payload.longitude,
-          payload.accuracy || null,
-          payload.altitude || null,
-          payload.speed || null,
-          payload.bearing || null,
-          payload.timestamp || new Date().toISOString()
-        );
+        // Store location in Supabase
+        await supabase
+          .from('location_history')
+          .insert({
+            device_id: ws.deviceId,
+            latitude: payload.latitude,
+            longitude: payload.longitude,
+            accuracy: payload.accuracy || null,
+            altitude: payload.altitude || null,
+            speed: payload.speed || null,
+            bearing: payload.bearing || null,
+            timestamp: payload.timestamp || new Date().toISOString()
+          });
 
         // Update device
-        deviceQueries.updateOnlineStatus.run(1, ws.deviceId);
-        deviceQueries.updateLocationEnabled.run(1, ws.deviceId);
+        await supabase
+          .from('devices')
+          .update({
+            is_online: true,
+            location_enabled: true,
+            last_seen: new Date().toISOString()
+          })
+          .eq('device_id', ws.deviceId);
 
         // Determine movement status
         let movementStatus = 'stationary';
@@ -142,21 +160,27 @@ function handleMessage(ws: ExtendedWebSocket, message: any) {
 
     case 'TELEMETRY_EVENT':
       if (ws.deviceId && payload) {
-        // Store telemetry
-        telemetryQueries.insert.run(
-          ws.deviceId,
-          payload.event_type,
-          payload.app_package || null,
-          payload.app_label || null,
-          payload.start_time || null,
-          payload.end_time || null,
-          payload.duration_ms || null,
-          payload.screen_state || null,
-          payload.network_type || null
-        );
+        // Store telemetry in Supabase
+        await supabase
+          .from('telemetry_events')
+          .insert({
+            device_id: ws.deviceId,
+            event_type: payload.event_type,
+            app_package: payload.app_package || null,
+            app_label: payload.app_label || null,
+            duration_ms: payload.duration_ms || null,
+            screen_state: payload.screen_state || null,
+            network_type: payload.network_type || null
+          });
 
         // Update device
-        deviceQueries.updateOnlineStatus.run(1, ws.deviceId);
+        await supabase
+          .from('devices')
+          .update({
+            is_online: true,
+            last_seen: new Date().toISOString()
+          })
+          .eq('device_id', ws.deviceId);
 
         // Broadcast to dashboards
         broadcastToDashboards({
@@ -184,7 +208,10 @@ function handleMessage(ws: ExtendedWebSocket, message: any) {
 
     case 'LOCATION_STATUS':
       if (ws.deviceId && payload) {
-        deviceQueries.updateLocationEnabled.run(payload.enabled ? 1 : 0, ws.deviceId);
+        await supabase
+          .from('devices')
+          .update({ location_enabled: payload.enabled })
+          .eq('device_id', ws.deviceId);
 
         broadcastToDashboards({
           type: 'DEVICE_UPDATE',
@@ -196,7 +223,14 @@ function handleMessage(ws: ExtendedWebSocket, message: any) {
 
     case 'HEARTBEAT':
       if (ws.deviceId) {
-        deviceQueries.updateOnlineStatus.run(1, ws.deviceId);
+        await supabase
+          .from('devices')
+          .update({
+            is_online: true,
+            last_seen: new Date().toISOString()
+          })
+          .eq('device_id', ws.deviceId);
+
         ws.send(JSON.stringify({ type: 'HEARTBEAT_ACK' }));
       }
       break;
@@ -206,7 +240,7 @@ function handleMessage(ws: ExtendedWebSocket, message: any) {
   }
 }
 
-function handleDisconnect(ws: ExtendedWebSocket) {
+async function handleDisconnect(ws: ExtendedWebSocket) {
   if (ws.clientType === 'DASHBOARD') {
     dashboardConnections.delete(ws);
     console.log('Dashboard disconnected');
@@ -214,8 +248,14 @@ function handleDisconnect(ws: ExtendedWebSocket) {
     deviceConnections.delete(ws.deviceId);
     console.log(`Device disconnected: ${ws.deviceId}`);
 
-    // Update device offline status
-    deviceQueries.updateOnlineStatus.run(0, ws.deviceId);
+    // Update device offline status in Supabase
+    await supabase
+      .from('devices')
+      .update({
+        is_online: false,
+        last_seen: new Date().toISOString()
+      })
+      .eq('device_id', ws.deviceId);
 
     // Broadcast device offline to dashboards
     broadcastToDashboards({
