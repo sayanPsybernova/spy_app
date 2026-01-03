@@ -58,9 +58,9 @@ function App() {
   const [locationEnabled, setLocationEnabled] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Server configuration - uses environment variables in production
-  const serverUrl = import.meta.env.VITE_SERVER_URL || 'http://192.168.1.3:3000'
-  const wsUrl = import.meta.env.VITE_WS_URL || 'ws://192.168.1.3:8080'
+  // Server configuration - production URLs
+  const serverUrl = import.meta.env.VITE_SERVER_URL || 'https://spy-app-d40s.onrender.com'
+  const wsUrl = import.meta.env.VITE_WS_URL || 'wss://spy-app-d40s.onrender.com'
 
   // Load saved state on startup
   useEffect(() => {
