@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { X, User, Key, AtSign, Image, Loader2, Eye, EyeOff, Upload, Trash2 } from 'lucide-react'
+import { X, User, Key, AtSign, Loader2, Eye, EyeOff, Upload, Trash2 } from 'lucide-react'
 import { API_BASE_URL, getAdminAuthHeader } from '../lib/supabase'
 import { motion, AnimatePresence } from 'framer-motion'
 
