@@ -5,18 +5,45 @@ import { broadcastToDashboards } from '../websocket/server'
 
 const router = Router()
 
-// POST /api/auth/login - User login
+// Hardcoded admin credentials
+const ADMIN_EMAIL = 'pradhansayan2@gmail.com'
+const ADMIN_PASSWORD = 'Sayan@0306'
+
+// POST /api/auth/login - User or Admin login
 router.post('/login', async (req: Request, res: Response) => {
   try {
-    const { user_id, password, device_id, device_name } = req.body
+    const { user_id, email, password, device_id, device_name } = req.body
 
-    if (!user_id || !password) {
+    if (!password || (!user_id && !email)) {
       return res.status(400).json({
         success: false,
-        error: 'Missing required fields: user_id, password'
+        error: 'Missing required fields: (user_id or email) and password'
       })
     }
 
+    // Check if this is an admin login (using email)
+    if (email) {
+      if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+        return res.json({
+          success: true,
+          message: 'Admin login successful',
+          data: {
+            user_id: 'admin',
+            username: 'Administrator',
+            profile_image_url: null,
+            device_id,
+            role: 'admin'
+          }
+        })
+      } else {
+        return res.status(401).json({
+          success: false,
+          error: 'Invalid admin credentials'
+        })
+      }
+    }
+
+    // Regular user login with user_id
     // Find user by user_id
     const { data: user, error: userError } = await supabase
       .from('users')
@@ -107,7 +134,8 @@ router.post('/login', async (req: Request, res: Response) => {
         user_id: user.user_id,
         username: user.username,
         profile_image_url: user.profile_image_url,
-        device_id
+        device_id,
+        role: 'user'
       }
     })
   } catch (error) {

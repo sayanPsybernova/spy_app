@@ -6,6 +6,7 @@ import LoginPage from './pages/LoginPage'
 import RequestAccessPage from './pages/RequestAccessPage'
 import MainPage from './pages/MainPage'
 import SettingsPage from './pages/SettingsPage'
+import MobileAdminDashboard from './pages/MobileAdminDashboard'
 
 // Types
 interface UserData {
@@ -14,6 +15,7 @@ interface UserData {
   device_name: string
   user_id?: string
   profile_image_url?: string | null
+  role: 'admin' | 'user'
 }
 
 interface AppContextType {
@@ -200,11 +202,19 @@ function App() {
               </>
             )}
 
-            {/* Main app (authenticated) */}
-            {hasConsented && isAuthenticated && userData && (
+            {/* Main app (authenticated as USER) */}
+            {hasConsented && isAuthenticated && userData && userData.role === 'user' && (
               <>
                 <Route path="/" element={<MainPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </>
+            )}
+
+            {/* Admin dashboard (authenticated as ADMIN) */}
+            {hasConsented && isAuthenticated && userData && userData.role === 'admin' && (
+              <>
+                <Route path="/" element={<MobileAdminDashboard />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </>
             )}
