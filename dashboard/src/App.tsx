@@ -8,7 +8,7 @@ import UserManagementPage from './pages/UserManagementPage'
 import Header from './components/Header'
 import NotificationToast from './components/NotificationToast'
 import { useWebSocket } from './hooks/useWebSocket'
-import { API_BASE_URL } from './lib/supabase'
+import { API_BASE_URL, WS_URL } from './lib/supabase'
 
 // Types
 export interface Device {
@@ -124,7 +124,7 @@ function App() {
   }, [])
 
   // WebSocket connection
-  const { connected, lastMessage } = useWebSocket('ws://localhost:8080')
+  const { connected, lastMessage } = useWebSocket(WS_URL)
 
   // Handle WebSocket messages
   useEffect(() => {

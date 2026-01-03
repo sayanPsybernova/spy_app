@@ -1,0 +1,16 @@
+{
+	"appId": "com.telemetry.app",
+	"appName": "Telemetry",
+	"webDir": "dist",
+	"server": {
+		"androidScheme": "https"
+	},
+	"plugins": {
+		"App": {},
+		"Preferences": {}
+	},
+	"android": {
+		"allowMixedContent": true,
+		"backgroundColor": "#0f0f23"
+	}
+}

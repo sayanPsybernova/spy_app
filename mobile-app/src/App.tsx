@@ -58,9 +58,9 @@ function App() {
   const [locationEnabled, setLocationEnabled] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Server configuration - UPDATE THIS TO YOUR MACHINE'S IP
-  const serverUrl = 'http://192.168.1.3:3000' // Change to your IP
-  const wsUrl = 'ws://192.168.1.3:8080' // Change to your IP
+  // Server configuration - uses environment variables in production
+  const serverUrl = import.meta.env.VITE_SERVER_URL || 'http://192.168.1.3:3000'
+  const wsUrl = import.meta.env.VITE_WS_URL || 'ws://192.168.1.3:8080'
 
   // Load saved state on startup
   useEffect(() => {

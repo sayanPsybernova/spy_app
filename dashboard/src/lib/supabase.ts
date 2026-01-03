@@ -14,5 +14,8 @@ export function getAdminAuthHeader(): string {
   return 'Basic ' + btoa(`${ADMIN_EMAIL}:${ADMIN_PASSWORD}`)
 }
 
-// API base URL
-export const API_BASE_URL = 'http://localhost:3000'
+// API base URL - uses environment variable in production
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+
+// WebSocket URL
+export const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8080'
