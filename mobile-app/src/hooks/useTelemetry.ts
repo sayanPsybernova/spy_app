@@ -50,7 +50,7 @@ export function useTelemetry(options: TelemetryOptions) {
         body: locationEnabled ? 'Sharing your location' : 'App tracking enabled',
         deviceId: deviceId,
         serverUrl: serverUrl,
-        wsUrl: serverUrl.replace('http://', 'ws://').replace(':3000', ':8080'),
+        wsUrl: serverUrl.replace('https://', 'wss://').replace('http://', 'ws://'),
         locationEnabled: locationEnabled
       })
     } catch (error) {
