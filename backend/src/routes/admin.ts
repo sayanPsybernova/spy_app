@@ -1,9 +1,25 @@
 import { Router, Request, Response } from 'express'
 import bcrypt from 'bcryptjs'
+import multer from 'multer'
 import { supabase } from '../lib/supabase'
 import { broadcastToDashboards } from '../websocket/server'
 
 const router = Router()
+
+// Configure multer for memory storage (we'll upload to Supabase)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true)
+    } else {
+      cb(new Error('Only image files are allowed'))
+    }
+  }
+})
 
 // Hardcoded admin credentials (as per requirements)
 const ADMIN_EMAIL = 'pradhansayan2@gmail.com'
@@ -34,10 +50,11 @@ const adminAuth = (req: Request, res: Response, next: Function) => {
   next()
 }
 
-// POST /api/admin/users - Create new user
-router.post('/users', adminAuth, async (req: Request, res: Response) => {
+// POST /api/admin/users - Create new user (with file upload support)
+router.post('/users', adminAuth, upload.single('profile_image'), async (req: Request, res: Response) => {
   try {
-    const { user_id, username, password, profile_image_url } = req.body
+    const { user_id, username, password } = req.body
+    const profileImageFile = req.file
 
     if (!user_id || !username || !password) {
       return res.status(400).json({
@@ -60,6 +77,32 @@ router.post('/users', adminAuth, async (req: Request, res: Response) => {
       })
     }
 
+    // Upload profile image to Supabase Storage if provided
+    let profile_image_url: string | null = null
+    if (profileImageFile) {
+      const fileExt = profileImageFile.originalname.split('.').pop()
+      const fileName = `${user_id}_${Date.now()}.${fileExt}`
+      const filePath = `profile-images/${fileName}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('user-assets')
+        .upload(filePath, profileImageFile.buffer, {
+          contentType: profileImageFile.mimetype,
+          upsert: true
+        })
+
+      if (uploadError) {
+        console.error('Image upload error:', uploadError)
+        // Continue without image if upload fails
+      } else {
+        // Get public URL
+        const { data: urlData } = supabase.storage
+          .from('user-assets')
+          .getPublicUrl(filePath)
+        profile_image_url = urlData.publicUrl
+      }
+    }
+
     // Hash password
     const salt = await bcrypt.genSalt(10)
     const password_hash = await bcrypt.hash(password, salt)
@@ -71,7 +114,7 @@ router.post('/users', adminAuth, async (req: Request, res: Response) => {
         user_id,
         username,
         password_hash,
-        profile_image_url: profile_image_url || null,
+        profile_image_url,
         status: 'active'
       })
       .select()
@@ -92,6 +135,7 @@ router.post('/users', adminAuth, async (req: Request, res: Response) => {
         id: user.id,
         user_id: user.user_id,
         username: user.username,
+        profile_image_url: user.profile_image_url,
         created_at: user.created_at
       }
     })

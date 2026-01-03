@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
-import { Link } from 'react-router-dom'
-import { Settings, Wifi, WifiOff, CheckCircle, XCircle, Pause, Play, X } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Settings, Wifi, WifiOff, CheckCircle, XCircle, Pause, Play, X, LogOut, ChevronDown } from 'lucide-react'
 import { useAppContext } from '../App'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTelemetry } from '../hooks/useTelemetry'
