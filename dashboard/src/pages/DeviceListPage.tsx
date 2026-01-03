@@ -11,8 +11,8 @@ export default function DeviceListPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
   const filteredDevices = devices.filter(device =>
-    device.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    device.device_name.toLowerCase().includes(searchQuery.toLowerCase())
+    (device.username || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (device.device_name || '').toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const onlineDevices = filteredDevices.filter(d => d.is_online)
