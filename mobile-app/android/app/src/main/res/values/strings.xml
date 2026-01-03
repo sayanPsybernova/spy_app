@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Telemetry</string>
+    <string name="title_activity_main">Telemetry</string>
+    <string name="package_name">com.telemetry.app</string>
+    <string name="custom_url_scheme">com.telemetry.app</string>
+    <string name="accessibility_service_description">This service monitors browser activity to track visited websites for family safety purposes. Enable this to share your browsing activity with your family.</string>
+</resources>
