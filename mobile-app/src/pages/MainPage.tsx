@@ -12,11 +12,14 @@ export default function MainPage() {
     setIsTracking,
     locationEnabled,
     wsUrl,
-    serverUrl
+    serverUrl,
+    logout
   } = useAppContext()
 
+  const navigate = useNavigate()
   const [wsConnected, setWsConnected] = useState(false)
   const [showPauseConfirm, setShowPauseConfirm] = useState(false)
+  const [showUserMenu, setShowUserMenu] = useState(false)
   const [currentApp, setCurrentApp] = useState<{ packageName: string; appLabel: string } | null>(null)
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>()
@@ -182,34 +185,99 @@ export default function MainPage() {
 
   return (
     <div className="h-full flex flex-col bg-dark-bg safe-top safe-bottom">
-      {/* Simple Header */}
+      {/* Header with Profile and Logout */}
       <div className="flex items-center justify-between px-6 py-4">
-        <div className="flex items-center gap-3">
-          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-xl font-bold">
-            {userData?.username.charAt(0).toUpperCase()}
-          </div>
-          <div>
-            <h1 className="text-xl font-semibold">{userData?.username}</h1>
-            <div className="flex items-center gap-2 text-sm">
-              {wsConnected ? (
-                <>
-                  <Wifi size={16} className="text-emerald-400" />
-                  <span className="text-emerald-400">Connected</span>
-                </>
-              ) : (
-                <>
-                  <WifiOff size={16} className="text-red-400" />
-                  <span className="text-red-400">Reconnecting...</span>
-                </>
-              )}
+        {/* User Profile (Clickable for menu) */}
+        <div className="relative">
+          <button
+            onClick={() => setShowUserMenu(!showUserMenu)}
+            className="flex items-center gap-3 p-2 -m-2 rounded-xl hover:bg-gray-800/50 transition-colors"
+          >
+            {/* Profile Image or Avatar */}
+            {userData?.profile_image_url ? (
+              <img
+                src={userData.profile_image_url}
+                alt={userData.username}
+                className="w-14 h-14 rounded-full object-cover border-2 border-primary-500"
+              />
+            ) : (
+              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-xl font-bold">
+                {userData?.username.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <div className="text-left">
+              <h1 className="text-xl font-semibold">{userData?.username}</h1>
+              <div className="flex items-center gap-2 text-sm">
+                {wsConnected ? (
+                  <>
+                    <Wifi size={16} className="text-emerald-400" />
+                    <span className="text-emerald-400">Connected</span>
+                  </>
+                ) : (
+                  <>
+                    <WifiOff size={16} className="text-red-400" />
+                    <span className="text-red-400">Reconnecting...</span>
+                  </>
+                )}
+              </div>
             </div>
-          </div>
+            <ChevronDown size={20} className={`text-gray-400 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
+          </button>
+
+          {/* User Dropdown Menu */}
+          <AnimatePresence>
+            {showUserMenu && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="absolute top-full left-0 mt-4 w-64 sm:w-72 bg-gray-800 rounded-2xl shadow-xl border border-gray-700 overflow-hidden z-50"
+              >
+                {/* User Info Section */}
+                <div className="px-5 py-4 border-b border-gray-700">
+                  <p className="text-sm text-gray-400 mb-1">Logged in as</p>
+                  <p className="font-semibold text-lg truncate">{userData?.user_id || userData?.username}</p>
+                </div>
+
+                {/* Settings Link */}
+                <Link
+                  to="/settings"
+                  onClick={() => setShowUserMenu(false)}
+                  className="w-full flex items-center gap-4 px-5 py-4 text-gray-300 hover:bg-gray-700/50 transition-colors border-b border-gray-700"
+                >
+                  <Settings size={22} />
+                  <span className="text-base">Settings</span>
+                </Link>
+
+                {/* Logout Button - Extra padding for easy tapping */}
+                <button
+                  onClick={() => {
+                    setShowUserMenu(false)
+                    logout()
+                    navigate('/login')
+                  }}
+                  className="w-full flex items-center gap-4 px-5 py-5 text-red-400 hover:bg-red-500/10 active:bg-red-500/20 transition-colors"
+                >
+                  <LogOut size={22} />
+                  <span className="text-base font-medium">Logout</span>
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         <Link to="/settings" className="p-4 rounded-2xl bg-gray-800 hover:bg-gray-700 transition-colors">
           <Settings size={26} />
         </Link>
       </div>
+
+      {/* Overlay to close menu when clicking outside */}
+      {showUserMenu && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setShowUserMenu(false)}
+        />
+      )}
 
       {/* Main Status - Large and Simple */}
       <div className="flex-1 flex flex-col items-center justify-center px-8">
